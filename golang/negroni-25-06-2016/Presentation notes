@@ -1,0 +1,140 @@
+Middleware vs Framework
+-----------------------
+A framework provides APIs and is a standard.
+
+Middleware provides alternate pathway to executing given API/standard. Adds features by plugging in the "middle"
+
+Uses a decorator pattern - used where the API is well known and changes very seldom but features might need to be added on demand.
+
+Ideally, start with 1 framework, make it a standard and build middlewares for it to add features. Ideal example, IO API - secure( buffered( stdin ) ).
+
+
+
+Chaining middlewares
+--------------------
+mainfunc( standard_input ) SOMETYPE { some magic }
+
+prototype-
+middleware( standard_input, next_middleware ) SOMETYPE
+
+
+Fluidly add middlewares. Imagine creating a framework that does this
+
+framework{
+	mainfunc() SOMETYPE
+}
+
+---
+
+framework.add( middleware1 ) 
+framework.add( middleware2 ) 
+framework.add( middelware3 ) 
+
+---
+
+framework{
+	middleware3( standard_input, 
+		middleware2( standard_input,
+			middleware3( standard_input,
+				mainfunc() 
+			)
+		)
+	) SOMETYPE
+
+}
+
+
+
+auth_middleware( request, server() ){
+	oauth2( request )
+	sometype_val := server( request )
+	return
+}
+
+
+
+error_handler( request, server() ){
+	result := server(request))
+	handle_error( result )
+}
+
+
+---
+
+Negroni
+-------
+
+A middleware handler (basically chains the middlewares nicely for you) for the standard golang http API.
+
+Starting with the vanilla API
+-----------------------------
+
+basic_handler.go
+
+json_handler.go - can be used for writing REST API.
+
+http
+----
+1.
+ResponseWriter, *request
+ResponseWriter is an interface - so no poniter - 
+https://gist.github.com/apoorv-kumar/94357f128a74491957b87e6c1fd82a50
+
+iface_ptr.go
+
+2.
+http.ListenAndServe
+https://gist.github.com/apoorv-kumar/5dfb145610194aea6d33ae875d32dbbb
+
+
+
+
+What more features might we need ?
+
+1. Confidentiality - TLS is available as http.TLSListenAndServe
+
+2. Routing - more powerful than the default version. Support regex + super fast.
+
+3. Logging - you want requests and replies to be logged for analysis.
+
+4. Recovery - send over a valid error code to the client in case of failure
+
+5. Serve static files - eg. html pages
+
+6. Authentication
+
+7. Manage state - sessions.
+
+
+
+We'll go over- 
+
+1. Routing
+2. Sessions
+
+
+
+
+1. Routing
+-----------
+Lib - Gorilla/mux
+
+Some good words about it - https://www.dougcodes.com/go-lang/martini-to-gin-back-to-martini-and-on-to-negroni-and-mux
+
+negroni_mux.go
+
+
+2. Sessions
+------------
+Lib - GoIncremental/negroni-sessions
+	 Uses gorilla/sessions underneath
+
+Basic idea - keep cookies to identify the user/session. Cookie can be set on the user browser and is sent back to the server with each request.
+
+http_cookie.go    --  how do we protect cookies from being tampered ?
+
+val - 23
+hash - md5( "looooong secret string" + string(23) )
+
+
+
